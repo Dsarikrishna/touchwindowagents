@@ -191,13 +191,13 @@ col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
     status_container = st.empty()
     try:
-        response = requests.get(f"{FUNCTIONS_URL}/api/TriggerProductAgent", timeout=2)
+        response = requests.get(f"{FUNCTIONS_URL}/api/TriggerProductAgent", timeout=10)
         if response.status_code in [200, 202]:
             status_container.success("✅ All systems operational")
         else:
             status_container.warning("⚠️ System check needed")
-    except Exception:
-        status_container.error("❌ System offline - Please contact support")
+    except Exception as e:
+        status_container.error(f"❌ System offline - {str(e)[:50]}")
 
 st.markdown("---")
 
