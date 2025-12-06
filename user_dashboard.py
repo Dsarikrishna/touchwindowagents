@@ -19,49 +19,159 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS for a clean, modern look
+# Custom CSS for a clean, modern look with good contrast
 st.markdown("""
 <style>
+    /* Main app background - light gradient */
+    .main {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+    }
+    
     .main-header {
         text-align: center;
         padding: 2rem 0;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        color: #ffffff;
         border-radius: 10px;
         margin-bottom: 2rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
+    
+    .main-header h1 {
+        color: #ffffff !important;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .main-header p {
+        color: #ecf0f1 !important;
+    }
+    
     .agent-card {
-        background: white;
+        background: #ffffff;
         padding: 1.5rem;
         border-radius: 10px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         margin: 1rem 0;
-        border-left: 4px solid #667eea;
+        border-left: 4px solid #3498db;
     }
+    
+    .agent-card h3 {
+        color: #2c3e50 !important;
+    }
+    
+    .agent-card strong {
+        color: #34495e;
+    }
+    
+    .agent-card p {
+        color: #555555;
+    }
+    
     .status-online {
-        color: #28a745;
+        color: #27ae60;
         font-weight: bold;
     }
+    
     .status-offline {
-        color: #dc3545;
+        color: #e74c3c;
         font-weight: bold;
     }
+    
+    /* Buttons with high contrast */
     .stButton>button {
         width: 100%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: #ffffff !important;
         border: none;
         padding: 0.75rem 1.5rem;
         border-radius: 8px;
         font-weight: 600;
         font-size: 16px;
+        box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
     }
+    
     .stButton>button:hover {
+        background: linear-gradient(135deg, #2980b9 0%, #1f638a 100%);
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.5);
     }
-    h3 {
-        color: #667eea;
+    
+    /* Headings with dark text on light background */
+    h1, h2, h3, h4 {
+        color: #2c3e50 !important;
+    }
+    
+    /* Regular text - dark on light background */
+    .stMarkdown, p, li {
+        color: #34495e !important;
+    }
+    
+    /* Expander headers */
+    .streamlit-expanderHeader {
+        background-color: #ffffff;
+        color: #2c3e50 !important;
+        border: 1px solid #dfe6e9;
+        border-radius: 8px;
+    }
+    
+    .streamlit-expanderHeader:hover {
+        background-color: #f8f9fa;
+        border-color: #3498db;
+    }
+    
+    /* Success/Error/Warning messages */
+    .stSuccess {
+        background-color: #d4edda;
+        color: #155724 !important;
+        border-left: 4px solid #28a745;
+    }
+    
+    .stError {
+        background-color: #f8d7da;
+        color: #721c24 !important;
+        border-left: 4px solid #dc3545;
+    }
+    
+    .stWarning {
+        background-color: #fff3cd;
+        color: #856404 !important;
+        border-left: 4px solid #ffc107;
+    }
+    
+    .stInfo {
+        background-color: #d1ecf1;
+        color: #0c5460 !important;
+        border-left: 4px solid #17a2b8;
+    }
+    
+    /* Metrics - clean and readable */
+    [data-testid="stMetric"] {
+        background-color: #ffffff;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 2px solid #3498db;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    [data-testid="stMetric"] label {
+        color: #7f8c8d !important;
+        font-weight: 600;
+    }
+    
+    [data-testid="stMetric"] [data-testid="stMetricValue"] {
+        color: #2c3e50 !important;
+        font-weight: bold;
+    }
+    
+    /* Progress bars */
+    .stProgress > div > div {
+        background-color: #3498db;
+    }
+    
+    /* Footer styling */
+    .footer-text {
+        color: #7f8c8d !important;
+        text-align: center;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -160,8 +270,123 @@ with col2:
     </div>
     """, unsafe_allow_html=True)
     
-    if st.button("📊 View Reports", key="view_reports", use_container_width=True):
-        st.info("📄 Report viewing feature coming soon. For now, use the individual agent buttons below to see detailed results.")
+    # Initialize session state for reports
+    if 'reports_loaded' not in st.session_state:
+        st.session_state.reports_loaded = False
+        st.session_state.reports_data = {}
+    
+    # Auto-load reports on first visit
+    if not st.session_state.reports_loaded:
+        with st.spinner("Loading latest reports..."):
+            agents = [
+                ("ProductAgent", "📦 Product Inventory"),
+                ("CompetitionMinderAgent", "🎯 Competition Analysis"),
+                ("CustomerMinderAgent", "👥 Customer Insights"),
+                ("EfficiencyAgent", "⚡ System Efficiency"),
+                ("SupplierMinderAgent", "🚚 Supplier Status"),
+                ("OrderProcessingAgent", "📋 Order Processing")
+            ]
+            
+            for agent_name, display_name in agents:
+                try:
+                    url = f"{FUNCTIONS_URL}/api/Trigger{agent_name}"
+                    response = requests.get(url, timeout=10)
+                    if response.status_code == 200:
+                        st.session_state.reports_data[agent_name] = {
+                            "status": "success",
+                            "data": response.json(),
+                            "display_name": display_name
+                        }
+                    else:
+                        st.session_state.reports_data[agent_name] = {
+                            "status": "error",
+                            "display_name": display_name
+                        }
+                except Exception:
+                    st.session_state.reports_data[agent_name] = {
+                        "status": "error",
+                        "display_name": display_name
+                    }
+            
+            st.session_state.reports_loaded = True
+    
+    # Refresh button
+    if st.button("� Refresh Reports", key="refresh_reports", use_container_width=True):
+        with st.spinner("Refreshing reports..."):
+            agents = [
+                ("ProductAgent", "📦 Product Inventory"),
+                ("CompetitionMinderAgent", "🎯 Competition Analysis"),
+                ("CustomerMinderAgent", "� Customer Insights"),
+                ("EfficiencyAgent", "⚡ System Efficiency"),
+                ("SupplierMinderAgent", "🚚 Supplier Status"),
+                ("OrderProcessingAgent", "📋 Order Processing")
+            ]
+            
+            for agent_name, display_name in agents:
+                try:
+                    url = f"{FUNCTIONS_URL}/api/Trigger{agent_name}"
+                    response = requests.get(url, timeout=10)
+                    if response.status_code == 200:
+                        st.session_state.reports_data[agent_name] = {
+                            "status": "success",
+                            "data": response.json(),
+                            "display_name": display_name
+                        }
+                    else:
+                        st.session_state.reports_data[agent_name] = {
+                            "status": "error",
+                            "display_name": display_name
+                        }
+                except Exception:
+                    st.session_state.reports_data[agent_name] = {
+                        "status": "error",
+                        "display_name": display_name
+                    }
+        st.success("✅ Reports refreshed!")
+        st.rerun()
+    
+    # Display reports summary
+    if st.session_state.reports_loaded and st.session_state.reports_data:
+        st.markdown("#### 📊 Latest Reports Summary")
+        
+        for agent_name, report in st.session_state.reports_data.items():
+            if report["status"] == "success":
+                data = report["data"]
+                with st.expander(f"✅ {report['display_name']}", expanded=False):
+                    # Custom summaries for each agent
+                    if agent_name == "ProductAgent" and data.get("status") == "success":
+                        col1, col2, col3 = st.columns(3)
+                        col1.metric("Products", data.get("total_products", 0))
+                        col2.metric("Avg Rating", f"⭐ {data.get('avg_rating', 0):.1f}")
+                        col3.metric("Categories", len(data.get("categories", {})))
+                    
+                    elif agent_name == "OrderProcessingAgent" and data.get("status") == "success":
+                        col1, col2 = st.columns(2)
+                        col1.metric("Orders", data.get("orders_processed", 0))
+                        col2.metric("Revenue", f"${data.get('total_revenue', 0):,.2f}")
+                    
+                    elif agent_name == "CustomerMinderAgent" and data.get("status") == "success":
+                        col1, col2 = st.columns(2)
+                        col1.metric("Customers", data.get("total_customers", 0))
+                        col2.metric("Regions", len(data.get("customers_by_region", {})))
+                    
+                    elif agent_name == "SupplierMinderAgent" and data.get("status") == "success":
+                        col1, col2 = st.columns(2)
+                        col1.metric("Suppliers", data.get("suppliers_monitored", 0))
+                        col2.metric("Products", data.get("products_tracked", 0))
+                    
+                    elif agent_name == "EfficiencyAgent" and data.get("status") == "success":
+                        col1, col2 = st.columns(2)
+                        col1.metric("Checks", data.get("checks_performed", 0))
+                        col2.metric("Avg Response", f"{data.get('avg_response_time_ms', 0):.0f}ms")
+                    
+                    elif agent_name == "CompetitionMinderAgent" and data.get("status") == "success":
+                        col1, col2 = st.columns(2)
+                        col1.metric("Products Compared", data.get("products_compared", 0))
+                        col2.metric("Price Difference", f"{data.get('avg_price_diff_pct', 0):+.1f}%")
+            else:
+                with st.expander(f"❌ {report['display_name']}", expanded=False):
+                    st.error("Unable to load report data")
 
 st.markdown("---")
 
@@ -310,8 +535,8 @@ with st.expander("❓ Help & Information"):
 # Footer
 st.markdown("---")
 st.markdown(f"""
-<div style="text-align: center; color: #666; padding: 1rem;">
-    <p>Touch Window AI Assistant | Last updated: {datetime.now().strftime('%Y-%m-%d %I:%M %p')}</p>
-    <p style="font-size: 0.9rem;">Powered by Azure Functions & Streamlit</p>
+<div class="footer-text" style="padding: 1rem;">
+    <p style="color: #7f8c8d;">Touch Window AI Assistant | Last updated: {datetime.now().strftime('%Y-%m-%d %I:%M %p')}</p>
+    <p style="font-size: 0.9rem; color: #95a5a6;">Powered by Azure Functions & Streamlit</p>
 </div>
 """, unsafe_allow_html=True)
