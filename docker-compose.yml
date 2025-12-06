@@ -28,5 +28,16 @@ services:
     depends_on:
       - functions
 
+  user_dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.user_dashboard
+    ports:
+      - "8502:8501"
+    environment:
+      - FUNCTIONS_URL=http://functions:80
+    depends_on:
+      - functions
+
 volumes:
   azurite-data:
