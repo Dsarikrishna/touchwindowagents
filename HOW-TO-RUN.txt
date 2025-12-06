@@ -1,0 +1,150 @@
+================================================================================
+              TOUCH WINDOW AI AGENTS - QUICK START GUIDE
+================================================================================
+
+This guide will help you run the AI agents in under 5 minutes.
+
+================================================================================
+OPTION 1: DOCKER (RECOMMENDED - EASIEST)
+================================================================================
+
+REQUIREMENTS:
+- Docker Desktop installed (https://www.docker.com/products/docker-desktop/)
+
+STEPS:
+
+1. Open a terminal (Command Prompt, PowerShell, or Terminal)
+
+2. Clone the repository:
+   git clone https://github.com/Dsarikrishna/touchwindowagents.git
+
+3. Navigate to the folder:
+   cd touchwindowagents
+
+4. Start all agents with one command:
+   docker-compose up
+
+5. Wait for the message "Host started" - your agents are now running!
+
+6. To trigger an agent manually (in a new terminal):
+   curl -X POST http://localhost:7071/admin/functions/ProductAgent -H "Content-Type: application/json" -d "{}"
+
+7. To stop the agents:
+   Press Ctrl+C or run: docker-compose down
+
+================================================================================
+OPTION 2: GITHUB CODESPACES (CLOUD - NO INSTALL NEEDED)
+================================================================================
+
+REQUIREMENTS:
+- GitHub account (free)
+
+STEPS:
+
+1. Go to: https://github.com/Dsarikrishna/touchwindowagents
+
+2. Click the green "Code" button
+
+3. Click "Create codespace on main"
+
+4. Wait 2-3 minutes for setup
+
+5. In the terminal that appears, run:
+   func start
+
+6. Your agents are running in the cloud!
+
+================================================================================
+OPTION 3: LOCAL WINDOWS (WITHOUT DOCKER)
+================================================================================
+
+REQUIREMENTS:
+- Python 3.12+
+- Node.js
+
+STEPS:
+
+1. Install Azure Functions Core Tools:
+   winget install Microsoft.Azure.FunctionsCoreTools
+
+2. Install Azurite (storage emulator):
+   npm install -g azurite
+
+3. Clone the repository:
+   git clone https://github.com/Dsarikrishna/touchwindowagents.git
+   cd touchwindowagents
+
+4. Install Python dependencies:
+   pip install -r requirements.txt
+
+5. Create local.settings.json file with this content:
+   {
+     "IsEncrypted": false,
+     "Values": {
+       "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+       "FUNCTIONS_WORKER_RUNTIME": "python"
+     }
+   }
+
+6. Double-click start-local.bat to run everything
+
+================================================================================
+TRIGGERING AGENTS
+================================================================================
+
+Once running, you can trigger any agent with these commands:
+
+PowerShell:
+-----------
+Invoke-WebRequest -Uri "http://localhost:7071/admin/functions/ProductAgent" -Method Post -ContentType "application/json" -Body '{}' -UseBasicParsing
+
+Curl (any terminal):
+--------------------
+curl -X POST http://localhost:7071/admin/functions/ProductAgent -H "Content-Type: application/json" -d "{}"
+
+Available Agents:
+- ProductAgent
+- CompetitionMinderAgent
+- CustomerMinderAgent
+- EfficiencyAgent
+- SupplierMinderAgent
+- OrderProcessingAgent
+
+================================================================================
+AGENT SCHEDULES (AUTOMATIC)
+================================================================================
+
+When running, agents execute automatically on these schedules:
+
+- ProductAgent:           Every Monday at 2:00 AM
+- CompetitionMinderAgent: Every Monday at 2:00 AM
+- CustomerMinderAgent:    Every Monday at 2:00 AM
+- EfficiencyAgent:        Every Monday at 2:00 AM
+- SupplierMinderAgent:    Every Monday at 2:00 AM
+- OrderProcessingAgent:   Every hour
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Problem: Docker command not found
+Solution: Install Docker Desktop from https://www.docker.com/products/docker-desktop/
+
+Problem: Port 7071 already in use
+Solution: Stop other services using that port, or change the port in docker-compose.yml
+
+Problem: "func" command not found (local setup)
+Solution: Run: winget install Microsoft.Azure.FunctionsCoreTools
+          Then restart your terminal
+
+Problem: Connection refused when triggering agents
+Solution: Make sure the agents are running (you should see "Host started" message)
+
+================================================================================
+SUPPORT
+================================================================================
+
+Repository: https://github.com/Dsarikrishna/touchwindowagents
+Issues: https://github.com/Dsarikrishna/touchwindowagents/issues
+
+================================================================================
