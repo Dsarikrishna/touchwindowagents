@@ -15,7 +15,8 @@ if 'performance_metrics' not in st.session_state:
         'failed_executions': 0,
         'total_execution_time': 0,
         'agent_metrics': {},
-        'last_execution_times': []
+        'last_execution_times': [],
+        'execution_history': []  # Store execution history with timestamps
     }
 
 # Page config
@@ -136,6 +137,8 @@ if st.session_state.performance_metrics['agent_metrics']:
                     avg_agent_time = metrics['total_time'] / metrics['runs']
                     st.caption(f"Success Rate: {agent_success_rate:.1f}%")
                     st.caption(f"Avg Time: {avg_agent_time:.2f}s")
+                if 'last_execution' in metrics and metrics['last_execution']:
+                    st.caption(f"🕒 Last run: {metrics['last_execution']}")
 
 st.markdown("---")
 
@@ -158,32 +161,46 @@ with col2:
                     agent_duration = time.time() - agent_start
                     
                     # Update agent-specific metrics
+                    execution_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     if agent['name'] not in st.session_state.performance_metrics['agent_metrics']:
                         st.session_state.performance_metrics['agent_metrics'][agent['name']] = {
-                            'runs': 0, 'success': 0, 'total_time': 0
+                            'runs': 0, 'success': 0, 'total_time': 0, 'last_execution': None
                         }
                     
                     st.session_state.performance_metrics['agent_metrics'][agent['name']]['runs'] += 1
                     st.session_state.performance_metrics['agent_metrics'][agent['name']]['total_time'] += agent_duration
+                    st.session_state.performance_metrics['agent_metrics'][agent['name']]['last_execution'] = execution_time
                     
                     if response.status_code == 200:
-                        results[agent['name']] = {"status": "✅ Success", "data": response.json(), "time": agent_duration}
+                        results[agent['name']] = {"status": "✅ Success", "data": response.json(), "time": agent_duration, "executed_at": execution_time}
                         st.session_state.performance_metrics['successful_executions'] += 1
                         st.session_state.performance_metrics['agent_metrics'][agent['name']]['success'] += 1
+                        # Store in execution history
+                        st.session_state.performance_metrics['execution_history'].append({
+                            'agent': agent['name'], 'timestamp': execution_time, 'status': 'success', 'duration': agent_duration
+                        })
                     else:
-                        results[agent['name']] = {"status": f"❌ Failed ({response.status_code})", "error": response.text, "time": agent_duration}
+                        results[agent['name']] = {"status": f"❌ Failed ({response.status_code})", "error": response.text, "time": agent_duration, "executed_at": execution_time}
                         st.session_state.performance_metrics['failed_executions'] += 1
+                        st.session_state.performance_metrics['execution_history'].append({
+                            'agent': agent['name'], 'timestamp': execution_time, 'status': 'failed', 'duration': agent_duration
+                        })
                 except Exception as e:
                     agent_duration = time.time() - agent_start
-                    results[agent['name']] = {"status": "❌ Error", "error": str(e), "time": agent_duration}
+                    execution_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    results[agent['name']] = {"status": "❌ Error", "error": str(e), "time": agent_duration, "executed_at": execution_time}
                     st.session_state.performance_metrics['failed_executions'] += 1
                     
                     if agent['name'] not in st.session_state.performance_metrics['agent_metrics']:
                         st.session_state.performance_metrics['agent_metrics'][agent['name']] = {
-                            'runs': 0, 'success': 0, 'total_time': 0
+                            'runs': 0, 'success': 0, 'total_time': 0, 'last_execution': None
                         }
                     st.session_state.performance_metrics['agent_metrics'][agent['name']]['runs'] += 1
                     st.session_state.performance_metrics['agent_metrics'][agent['name']]['total_time'] += agent_duration
+                    st.session_state.performance_metrics['agent_metrics'][agent['name']]['last_execution'] = execution_time
+                    st.session_state.performance_metrics['execution_history'].append({
+                        'agent': agent['name'], 'timestamp': execution_time, 'status': 'error', 'duration': agent_duration
+                    })
             
             total_duration = time.time() - start_time
             st.session_state.performance_metrics['total_executions'] += len(agents)
@@ -199,7 +216,8 @@ with col2:
             st.balloons()
             
             for agent_name, result in results.items():
-                status_text = f"{result['status']} - {agent_name} ({result.get('time', 0):.2f}s)"
+                executed_at = result.get('executed_at', 'N/A')
+                status_text = f"{result['status']} - {agent_name} ({result.get('time', 0):.2f}s) - 🕒 {executed_at}"
                 with st.expander(status_text):
                     if "data" in result:
                         st.json(result['data'])
@@ -237,13 +255,15 @@ for idx, agent in enumerate(agents):
                         agent_duration = time.time() - agent_start
                         
                         # Update metrics
+                        execution_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                         if agent['name'] not in st.session_state.performance_metrics['agent_metrics']:
                             st.session_state.performance_metrics['agent_metrics'][agent['name']] = {
-                                'runs': 0, 'success': 0, 'total_time': 0
+                                'runs': 0, 'success': 0, 'total_time': 0, 'last_execution': None
                             }
                         
                         st.session_state.performance_metrics['agent_metrics'][agent['name']]['runs'] += 1
                         st.session_state.performance_metrics['agent_metrics'][agent['name']]['total_time'] += agent_duration
+                        st.session_state.performance_metrics['agent_metrics'][agent['name']]['last_execution'] = execution_time
                         st.session_state.performance_metrics['total_executions'] += 1
                         st.session_state.performance_metrics['total_execution_time'] += agent_duration
                         st.session_state.performance_metrics['last_execution_times'].append(agent_duration)
@@ -255,12 +275,18 @@ for idx, agent in enumerate(agents):
                             result = response.json()
                             st.session_state.performance_metrics['successful_executions'] += 1
                             st.session_state.performance_metrics['agent_metrics'][agent['name']]['success'] += 1
-                            st.success(f"✅ {agent['name']} executed successfully in {agent_duration:.2f}s!")
+                            st.session_state.performance_metrics['execution_history'].append({
+                                'agent': agent['name'], 'timestamp': execution_time, 'status': 'success', 'duration': agent_duration
+                            })
+                            st.success(f"✅ {agent['name']} executed successfully in {agent_duration:.2f}s! 🕒 {execution_time}")
                             st.json(result)
                             st.balloons()
                         else:
                             st.session_state.performance_metrics['failed_executions'] += 1
-                            st.error(f"❌ Failed: Status {response.status_code} (took {agent_duration:.2f}s)")
+                            st.session_state.performance_metrics['execution_history'].append({
+                                'agent': agent['name'], 'timestamp': execution_time, 'status': 'failed', 'duration': agent_duration
+                            })
+                            st.error(f"❌ Failed: Status {response.status_code} (took {agent_duration:.2f}s) 🕒 {execution_time}")
                             st.code(response.text)
                     except Exception as e:
                         agent_duration = time.time() - agent_start
@@ -268,16 +294,44 @@ for idx, agent in enumerate(agents):
                         st.session_state.performance_metrics['total_executions'] += 1
                         st.session_state.performance_metrics['total_execution_time'] += agent_duration
                         
+                        execution_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                         if agent['name'] not in st.session_state.performance_metrics['agent_metrics']:
                             st.session_state.performance_metrics['agent_metrics'][agent['name']] = {
-                                'runs': 0, 'success': 0, 'total_time': 0
+                                'runs': 0, 'success': 0, 'total_time': 0, 'last_execution': None
                             }
                         st.session_state.performance_metrics['agent_metrics'][agent['name']]['runs'] += 1
                         st.session_state.performance_metrics['agent_metrics'][agent['name']]['total_time'] += agent_duration
+                        st.session_state.performance_metrics['agent_metrics'][agent['name']]['last_execution'] = execution_time
+                        st.session_state.performance_metrics['execution_history'].append({
+                            'agent': agent['name'], 'timestamp': execution_time, 'status': 'error', 'duration': agent_duration
+                        })
                         
-                        st.error(f"❌ Error: {str(e)} (took {agent_duration:.2f}s)")
+                        st.error(f"❌ Error: {str(e)} (took {agent_duration:.2f}s) 🕒 {execution_time}")
             
             st.markdown("---")
+
+# Execution History
+st.markdown("---")
+st.subheader("📊 Execution History")
+
+if st.session_state.performance_metrics['execution_history']:
+    # Show last 20 executions
+    recent_history = st.session_state.performance_metrics['execution_history'][-20:]
+    recent_history.reverse()  # Show most recent first
+    
+    for idx, execution in enumerate(recent_history):
+        status_icon = "✅" if execution['status'] == 'success' else "❌"
+        col1, col2, col3, col4 = st.columns([2, 3, 2, 1])
+        with col1:
+            st.text(execution['agent'])
+        with col2:
+            st.text(f"🕒 {execution['timestamp']}")
+        with col3:
+            st.text(f"{status_icon} {execution['status'].title()}")
+        with col4:
+            st.text(f"{execution['duration']:.2f}s")
+else:
+    st.info("No execution history yet. Trigger agents to see execution records.")
 
 # Footer
 st.markdown("---")
