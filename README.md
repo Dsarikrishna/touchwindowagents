@@ -1,8 +1,48 @@
-# Touch Window AI Agents
+# Touch Window AI Agents 🤖
 
 Azure Functions-based AI Agents for Touch Window automation and intelligence.
 
-## 🤖 Agents
+**No Azure subscription required!** Run with Docker or GitHub Codespaces for free.
+
+## 🚀 Quick Start (Docker - Recommended)
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed
+
+### Run with One Command
+
+```bash
+# Clone the repository
+git clone https://github.com/Dsarikrishna/touchwindowagents.git
+cd touchwindowagents
+
+# Start all agents with Docker
+docker-compose up
+```
+
+That's it! Your agents are now running at `http://localhost:7071` 🎉
+
+### Trigger All Agents
+
+```bash
+# In a new terminal
+curl -X POST http://localhost:7071/admin/functions/ProductAgent -H "Content-Type: application/json" -d "{}"
+curl -X POST http://localhost:7071/admin/functions/CompetitionMinderAgent -H "Content-Type: application/json" -d "{}"
+curl -X POST http://localhost:7071/admin/functions/CustomerMinderAgent -H "Content-Type: application/json" -d "{}"
+curl -X POST http://localhost:7071/admin/functions/EfficiencyAgent -H "Content-Type: application/json" -d "{}"
+curl -X POST http://localhost:7071/admin/functions/SupplierMinderAgent -H "Content-Type: application/json" -d "{}"
+curl -X POST http://localhost:7071/admin/functions/OrderProcessingAgent -H "Content-Type: application/json" -d "{}"
+```
+
+### Stop the Agents
+
+```bash
+docker-compose down
+```
+
+---
+
+## 🤖 AI Agents
 
 | Agent | Description | Schedule |
 |-------|-------------|----------|
@@ -13,28 +53,52 @@ Azure Functions-based AI Agents for Touch Window automation and intelligence.
 | **SupplierMinderAgent** | Supplier relationship management | Weekly (Mon 2AM) |
 | **OrderProcessingAgent** | Order processing automation | Hourly |
 
-## 🚀 Quick Start
+---
 
-### Prerequisites
+## 🌐 Alternative: GitHub Codespaces (Cloud-based)
 
-- Python 3.12+
-- Azure Functions Core Tools v4
-- Azurite (for local development)
+Run entirely in the cloud without installing anything:
 
-### Local Development
-
-1. **Clone the repository**
+1. Go to this repository on GitHub
+2. Click the green **"Code"** button
+3. Click **"Create codespace on main"**
+4. Wait for setup (~2 min)
+5. Run in terminal:
    ```bash
-   git clone https://github.com/Dsarikrishna/touchwindowagents.git
-   cd touchwindowagents
+   func start
    ```
 
-2. **Install dependencies**
-   ```bash
+**Free tier**: 60 hours/month
+
+---
+
+## 💻 Alternative: Local Development (Windows)
+
+### Prerequisites
+- Python 3.12+
+- Node.js (for Azurite)
+- Azure Functions Core Tools
+
+### Setup
+
+1. **Install Azure Functions Core Tools**
+   ```powershell
+   winget install Microsoft.Azure.FunctionsCoreTools
+   ```
+
+2. **Install Azurite**
+   ```powershell
+   npm install -g azurite
+   ```
+
+3. **Clone and setup**
+   ```powershell
+   git clone https://github.com/Dsarikrishna/touchwindowagents.git
+   cd touchwindowagents
    pip install -r requirements.txt
    ```
 
-3. **Create local.settings.json**
+4. **Create local.settings.json**
    ```json
    {
      "IsEncrypted": false,
@@ -45,73 +109,42 @@ Azure Functions-based AI Agents for Touch Window automation and intelligence.
    }
    ```
 
-4. **Start Azurite (Azure Storage Emulator)**
-   ```bash
-   npx azurite --silent --location ./azurite-data
+5. **Run** (double-click or run in terminal)
+   ```
+   start-local.bat
    ```
 
-5. **Run Azure Functions locally**
-   ```bash
-   func start
-   ```
-
-### Manual Trigger (for testing)
-
-```powershell
-# Trigger a specific agent
-Invoke-WebRequest -Uri "http://localhost:7071/admin/functions/ProductAgent" -Method Post -ContentType "application/json" -Body '{"input":"test"}' -UseBasicParsing
-```
-
-## 📦 Deployment
-
-### Deploy to Azure
-
-1. Create an Azure Function App in the Azure Portal
-2. Download the Publish Profile from the Function App
-3. Add the publish profile as a GitHub Secret named `AZURE_FUNCTIONAPP_PUBLISH_PROFILE`
-4. Update the `AZURE_FUNCTIONAPP_NAME` in `.github/workflows/azure-functions-deploy.yml`
-5. Push to `main` branch to trigger deployment
-
-### GitHub Actions
-
-The repository includes a GitHub Actions workflow that automatically deploys to Azure Functions on push to the `main` branch.
+---
 
 ## 📁 Project Structure
 
 ```
 touchwindowagents/
-├── .github/
-│   └── workflows/
-│       └── azure-functions-deploy.yml
+├── .devcontainer/          # GitHub Codespaces config
+├── .github/workflows/      # CI/CD with Docker
 ├── CompetitionMinderAgent/
-│   ├── __init__.py
-│   └── function.json
 ├── CustomerMinderAgent/
-│   ├── __init__.py
-│   └── function.json
 ├── EfficiencyAgent/
-│   ├── __init__.py
-│   └── function.json
 ├── OrderProcessingAgent/
-│   ├── __init__.py
-│   └── function.json
 ├── ProductAgent/
-│   ├── __init__.py
-│   └── function.json
 ├── SupplierMinderAgent/
-│   ├── __init__.py
-│   └── function.json
-├── shared/
-│   ├── __init__.py
-│   └── agents.py
-├── host.json
+├── shared/                 # Shared agent utilities
+├── docker-compose.yml      # 🐳 One-command deployment
+├── Dockerfile
 ├── requirements.txt
-└── README.md
+├── start-local.bat         # Windows local runner
+└── trigger-all-agents.bat  # Windows agent trigger
 ```
+
+---
 
 ## 🔧 Configuration
 
-Each agent can be configured via environment variables in the Azure Function App settings or `local.settings.json` for local development.
+Environment variables can be set in:
+- `docker-compose.yml` for Docker
+- `local.settings.json` for local development
+
+---
 
 ## 📝 License
 
