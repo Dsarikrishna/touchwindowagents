@@ -2,10 +2,10 @@
               TOUCH WINDOW AI AGENTS - QUICK START GUIDE
 ================================================================================
 
-This guide will help you run the AI agents in under 5 minutes.
+This guide will help you run the AI agents with a web dashboard in under 5 minutes.
 
 ================================================================================
-OPTION 1: DOCKER (RECOMMENDED - EASIEST)
+OPTION 1: DOCKER WITH DASHBOARD (RECOMMENDED - EASIEST)
 ================================================================================
 
 REQUIREMENTS:
@@ -21,15 +21,21 @@ STEPS:
 3. Navigate to the folder:
    cd touchwindowagents
 
-4. Start all agents with one command:
+4. Start everything with one command:
    docker-compose up
 
-5. Wait for the message "Host started" - your agents are now running!
+5. Wait for the services to start (about 1-2 minutes)
 
-6. To trigger an agent manually (in a new terminal):
-   curl -X POST http://localhost:7071/admin/functions/ProductAgent -H "Content-Type: application/json" -d "{}"
+6. Open your browser and go to:
+   
+   *** WEB DASHBOARD: http://localhost:8501 ***
+   
+   This is the user-friendly interface where you can:
+   - See all agents and their status
+   - Trigger agents with one click
+   - Monitor agent activity
 
-7. To stop the agents:
+7. To stop everything:
    Press Ctrl+C or run: docker-compose down
 
 ================================================================================
@@ -49,10 +55,15 @@ STEPS:
 
 4. Wait 2-3 minutes for setup
 
-5. In the terminal that appears, run:
+5. In the terminal, run both commands:
+   
+   Terminal 1 (Agents):
    func start
+   
+   Terminal 2 (Dashboard):
+   streamlit run dashboard.py --server.port 8501
 
-6. Your agents are running in the cloud!
+6. Click the "Ports" tab and open port 8501 to see the dashboard
 
 ================================================================================
 OPTION 3: LOCAL WINDOWS (WITHOUT DOCKER)
@@ -86,59 +97,69 @@ STEPS:
      }
    }
 
-6. Double-click start-local.bat to run everything
+6. Open TWO terminals:
+
+   Terminal 1 - Run agents:
+   Double-click start-local.bat
+   
+   Terminal 2 - Run dashboard:
+   Double-click start-dashboard.bat
+
+7. Open browser: http://localhost:8501
 
 ================================================================================
-TRIGGERING AGENTS
+WEB DASHBOARD FEATURES
 ================================================================================
 
-Once running, you can trigger any agent with these commands:
+The dashboard at http://localhost:8501 provides:
 
-PowerShell:
------------
-Invoke-WebRequest -Uri "http://localhost:7071/admin/functions/ProductAgent" -Method Post -ContentType "application/json" -Body '{}' -UseBasicParsing
+✅ Visual overview of all 6 AI agents
+✅ One-click trigger for any agent
+✅ "Trigger ALL" button to run all agents at once
+✅ Connection status indicator
+✅ Agent descriptions and schedules
+✅ Real-time feedback on agent triggers
 
-Curl (any terminal):
---------------------
-curl -X POST http://localhost:7071/admin/functions/ProductAgent -H "Content-Type: application/json" -d "{}"
+No command line knowledge needed for normal users!
+
+================================================================================
+AGENT INFORMATION
+================================================================================
 
 Available Agents:
-- ProductAgent
-- CompetitionMinderAgent
-- CustomerMinderAgent
-- EfficiencyAgent
-- SupplierMinderAgent
-- OrderProcessingAgent
+- 📦 ProductAgent          - Monitors and analyzes product data
+- 🎯 CompetitionMinderAgent - Tracks competitor activities
+- 👥 CustomerMinderAgent    - Customer relationship insights
+- ⚡ EfficiencyAgent        - Operational efficiency analysis
+- 🏭 SupplierMinderAgent    - Supplier relationship management
+- 📋 OrderProcessingAgent   - Order processing automation
 
-================================================================================
-AGENT SCHEDULES (AUTOMATIC)
-================================================================================
-
-When running, agents execute automatically on these schedules:
-
-- ProductAgent:           Every Monday at 2:00 AM
-- CompetitionMinderAgent: Every Monday at 2:00 AM
-- CustomerMinderAgent:    Every Monday at 2:00 AM
-- EfficiencyAgent:        Every Monday at 2:00 AM
-- SupplierMinderAgent:    Every Monday at 2:00 AM
-- OrderProcessingAgent:   Every hour
+Automatic Schedules:
+- Most agents: Every Monday at 2:00 AM
+- OrderProcessingAgent: Every hour
 
 ================================================================================
 TROUBLESHOOTING
 ================================================================================
 
+Problem: Dashboard shows "Offline" status
+Solution: Make sure docker-compose up is running, or start-local.bat is running
+
 Problem: Docker command not found
 Solution: Install Docker Desktop from https://www.docker.com/products/docker-desktop/
 
-Problem: Port 7071 already in use
-Solution: Stop other services using that port, or change the port in docker-compose.yml
+Problem: Port 8501 already in use
+Solution: Stop other Streamlit apps, or change port in docker-compose.yml
 
-Problem: "func" command not found (local setup)
-Solution: Run: winget install Microsoft.Azure.FunctionsCoreTools
-          Then restart your terminal
+Problem: "Connection refused" errors
+Solution: Wait a bit longer for services to start (can take 1-2 minutes)
 
-Problem: Connection refused when triggering agents
-Solution: Make sure the agents are running (you should see "Host started" message)
+================================================================================
+URLS SUMMARY
+================================================================================
+
+Web Dashboard:     http://localhost:8501    (User-friendly interface)
+Functions API:     http://localhost:7071    (For developers/API access)
 
 ================================================================================
 SUPPORT
